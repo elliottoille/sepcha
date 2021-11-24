@@ -1,0 +1,6 @@
+<link rel="stylesheet" href="../styles/font.css">
+<link rel="stylesheet" href="../styles/settingsPage.css">
+<body>
+<iframe id="categoriesFrame" src="settings/categoriesPage.php" frameborder="0"></iframe>
+<iframe id="settingsFrame" src="settings/settingsPage.php" frameborder="0" name="settingsFrame"></iframe>
+</body>

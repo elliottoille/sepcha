@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+}
+iframe {
+    height: 100%;
+    border: none;
+}
+#categoriesFrame {
+    width: 25%;
+    float: left;
+}
+#settingsFrame {
+    width: 75%;
+    float: right;
+}

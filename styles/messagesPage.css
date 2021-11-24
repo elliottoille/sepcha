@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+}
+iframe {
+    height: 100%;
+    border: none;
+}
+#contactsFrame {
+    width: 25%;
+    float: left;
+}
+#messagesFrame {
+    width: 75%;
+    float: right;
+}

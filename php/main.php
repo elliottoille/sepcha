@@ -69,6 +69,8 @@ function userLogIn($username, $password) {
         $privateKey = $dataOfQuery["privateKey"];
 
         $currentUser = new user($username, $userID, $publicKey, $privateKey);
+
+        $_SESSION["currentUser"] = $currentUser;
     }
 }
 
@@ -93,6 +95,7 @@ class user {
     public $username;
     public $userID;
     public $publicKey;
+    public $contacts;
 
     private $privateKey;
 
@@ -101,6 +104,7 @@ class user {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
+        $this->contacts = array();
     }
 
     function setPassword($password) {
@@ -121,6 +125,22 @@ class user {
     
     function getPrivateKey() {
         return $this->privateKey;
+    }
+
+    function newContact($contactUsername) {
+        $conn = databaseConnect();
+        $SQL = "SELECT `userID` FROM `users` WHERE `username`='$contactUsername';";
+        $resultOfQuery = mysqli_query($conn, $SQL);
+        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+        $numberOfRows = mysqli_num_rows($resultOfQuery);
+        $contactUserID = $dataOfQuery["userID"];
+        
+        if ( $numberOfRows != 0 ) {
+            array_push($this->contacts, $contactUserID);
+        } else {
+            echo "the user that you tried to add does not exist";
+            return;
+        }
     }
 }
 ?>
