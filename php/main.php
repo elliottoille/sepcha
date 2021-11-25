@@ -104,7 +104,13 @@ class user {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
+        $SQL = "SELECT `receivingUserID` FROM `contacts` WHERE `sendingUserID`='$userID'";
+        $conn = databaseConnect();
+        $resultOfQuery = mysqli_query($conn, $SQL);
         $this->contacts = array();
+        while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
+            array_push($this->contacts, $dataOfQuery["receivingUserID"]);
+        }
     }
 
     function setPassword($password) {
@@ -137,9 +143,24 @@ class user {
         
         if ( $numberOfRows != 0 ) {
             array_push($this->contacts, $contactUserID);
+            $SQL = "INSERT INTO `contacts` (`sendingUserID`, `receivingUserID`) VALUES ('$this->userID', '$contactUserID');";
+            $resultOfQuery = mysqli_query($conn, $SQL);
         } else {
             echo "the user that you tried to add does not exist";
             return;
+        }
+    }
+
+    function renderContacts() {
+        $conn = databaseConnect();
+        foreach ($this->contacts as $contact) { // THIS IS VERY SLOW, CAN DO IN ONE SQL QUERY DON'T EVEN NEED CONTACTS ARRAY I THINK
+            $SQL = "SELECT `username` FROM `users` WHERE `userID`='$contact';";
+            $resultOfQuery = mysqli_query($conn, $SQL);
+            $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+            $contactUsername = $dataOfQuery["username"];
+            $HTML = "<li>
+                        <form action='../formphp/'
+                    </li>"
         }
     }
 }
