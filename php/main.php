@@ -104,12 +104,13 @@ class user {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
-        $SQL = "SELECT `receivingUserID` FROM `contacts` WHERE `sendingUserID`='$userID'";
+        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts; 
+        ";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
         $this->contacts = array();
         while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
-            array_push($this->contacts, $dataOfQuery["receivingUserID"]);
+            array_push($this->contacts, $dataOfQuery["contact"]);
         }
     }
 
@@ -143,7 +144,7 @@ class user {
         
         if ( $numberOfRows != 0 ) {
             array_push($this->contacts, $contactUserID);
-            $SQL = "INSERT INTO `contacts` (`sendingUserID`, `receivingUserID`) VALUES ('$this->userID', '$contactUserID');";
+            $SQL = "INSERT INTO `contacts` (`userIDa`, `userIDb`) VALUES ('$this->userID', '$contactUserID');";
             $resultOfQuery = mysqli_query($conn, $SQL);
         } else {
             echo "the user that you tried to add does not exist";
@@ -153,14 +154,22 @@ class user {
 
     function renderContacts() {
         $conn = databaseConnect();
-        foreach ($this->contacts as $contact) { // THIS IS VERY SLOW, CAN DO IN ONE SQL QUERY DON'T EVEN NEED CONTACTS ARRAY I THINK
-            $SQL = "SELECT `username` FROM `users` WHERE `userID`='$contact';";
-            $resultOfQuery = mysqli_query($conn, $SQL);
-            $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
-            $contactUsername = $dataOfQuery["username"];
-            $HTML = "<li>
-                        <form action='../formphp/'
-                    </li>"
+        $contacts = $this->contacts
+        if ( !(count($contacts) == 0) ) {
+            foreach ($this->contacts as $contact) { // THIS IS VERY SLOW, CAN DO IN ONE SQL QUERY DON'T EVEN NEED CONTACTS ARRAY I THINK
+                $SQL = "SELECT username FROM users WHERE userID=$contact;";
+                $resultOfQuery = mysqli_query($conn, $SQL);
+                $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+                $contactUsername = $dataOfQuery["username"];
+                $HTML = '<li id="contactLi">
+                            <form action="../formphp/setCurrentContact.php" method="POST">
+                                <button id="contactBtn" name="contact" value=' . $contact . ' type="submit">' . $contactUsername . ' </button>
+                            </form>
+                        </li>';
+                echo $HTML;
+            }
+        } else {
+            echo "you have no contacts added";
         }
     }
 }

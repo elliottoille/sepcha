@@ -7,6 +7,11 @@
     </form></li>
     <?php
         include '../../php/main.php';
-        
+        if ( isset($_SESSION["currentUser"]) ) {
+            $currentUser = $_SESSION["currentUser"];
+            $currentUser->renderContacts();
+        } else {
+            echo "you are not logged in";
+        }
     ?>
 </ul>
