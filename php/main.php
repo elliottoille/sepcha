@@ -12,10 +12,10 @@ function databaseConnect() {
     if( !$conn ) { # If the connection fails then
         die("Error: ". mysqli_connect_error()); # Quit and report the error to the terminal
     }
-    return $conn;
+    return $conn; # The connection is returned when the function is called
 }
 
-function compareStrings($str1, $str2) {
+function compareStrings($str1, $str2) { # Takes two strings as parameters
     if ( $str1 == $str2 ) { # If the two inputted strings match then
         return TRUE; # Return true
     } else { # Otherwise
@@ -23,43 +23,44 @@ function compareStrings($str1, $str2) {
     }
 }
 
-function prepUserInput($input) {
-    $conn = databaseConnect();
-    $input = mysqli_real_escape_string($conn, $input);
-    return $input;
+function prepUserInput($input) { # Takes user input as a parameter
+    $conn = databaseConnect(); # Uses the databaseConnect() function to get the $conn variable
+    $input = mysqli_real_escape_string($conn, $input); # Calls the built-in function to prepare the user input
+    return $input; # Returns the user input
 }
 
-function userSignUp($username, $password, $confirmPassword) {
-    $conn = databaseConnect();
-    if ( compareStrings($password, $confirmPassword) ) {
+function userSignUp($username, $password, $confirmPassword) { # Takes a username and a password twice as input
+    $conn = databaseConnect(); # Uses the databaseConnect() function to get the $conn variable
+    if ( compareStrings($password, $confirmPassword) ) { # Uses the compareStrings() to check if the two entered passwords match each other
 
-        $SQL = "SELECT username FROM `users` WHERE `username`='$username';";
-        $resultOfQuery = mysqli_query($conn, $SQL);
-        $numberOfRows = mysqli_num_rows($resultOfQuery);
+        $SQL = "SELECT username FROM `users` WHERE `username`='$username';"; # SQL query that selects the usernames from the table where the username is the one entered by the user
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database using the previous SQL query
+        $numberOfRows = mysqli_num_rows($resultOfQuery); # The amount of rows that the previous SQL query returned
 
-        if ( $numberOfRows == 0 ) {
-            $keys = generateEncryptionKeys();
-            $privateKey = $keys[0];
-            $publicKey = $keys[1];
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        if ( $numberOfRows == 0 ) { # If nothing was returned from the previous SQL query
+            $keys = generateEncryptionKeys(); # Uses the generateEncryptionKeys() function to generate a key pair and stores that in an array
+            $privateKey = $keys[0]; # Sets the variable privateKey to the 1st item in the array
+            $publicKey = $keys[1]; # Sets the variable publicKey to the 2nd item in the array
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT); # Hashes the password using the built-in password_hash() function
 
             $SQL = "INSERT INTO `users` ( `username`, `password`, `privateKey`, `publicKey`) VALUES ('$username', '$hashedPassword', '$publicKey', '$privateKey');";
-            $resultOfQuery = mysqli_query($conn, $SQL);
-            userLogIn($username, $password);
-        } else {
+            # SQL query that inserts the data for the user into the users table
+            $resultOfQuery = mysqli_query($conn, $SQL); # Queries the database with the previous SQL query
+            userLogIn($username, $password); # Calls the userLogIn() function with the entered username and password
+        } else { # If the first query resulted in a piece of data being returned then
             echo "a user with that username already exists";
         }
-    } else {
+    } else { # If the passwords that the user entered do not match then
         echo "the passwords you entered did not match";
     }
 }
 
-function userLogIn($username, $password) {
-    $conn = databaseConnect();
+function userLogIn($username, $password) { # Takes a prepared username and password as parameters
+    $conn = databaseConnect(); # Uses the databaseConnect() function to get the $conn variable
     
-    $SQL = "SELECT * FROM `users` WHERE `username`='$username';";
-    $resultOfQuery = mysqli_query($conn, $SQL);
-    $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+    $SQL = "SELECT * FROM `users` WHERE `username`='$username';"; # SQL query that selects all the variables for a user where the username is the one the user entered
+    $resultOfQuery = mysqli_query($conn, $SQL); # Queries the database with the previous SQL query
+    $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Stores the data fetched by the query 
     
     if ( password_verify($password, $dataOfQuery["password"]) ) {
         echo "the username and password you entered were a valid combination";
@@ -104,13 +105,14 @@ class user {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
-        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts; 
-        ";
+        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts;";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
         $this->contacts = array();
         while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
-            array_push($this->contacts, $dataOfQuery["contact"]);
+            if ( $dataOfQuery["contact"] != NULL ) {
+                array_push($this->contacts, $dataOfQuery["contact"]);
+            }
         }
     }
 
@@ -154,10 +156,10 @@ class user {
 
     function renderContacts() {
         $conn = databaseConnect();
-        $contacts = $this->contacts
+        $contacts = $this->contacts;
         if ( !(count($contacts) == 0) ) {
             foreach ($this->contacts as $contact) { // THIS IS VERY SLOW, CAN DO IN ONE SQL QUERY DON'T EVEN NEED CONTACTS ARRAY I THINK
-                $SQL = "SELECT username FROM users WHERE userID=$contact;";
+                $SQL = "SELECT username FROM users WHERE userID='$contact';";
                 $resultOfQuery = mysqli_query($conn, $SQL);
                 $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
                 $contactUsername = $dataOfQuery["username"];
@@ -170,6 +172,31 @@ class user {
             }
         } else {
             echo "you have no contacts added";
+        }
+    }
+}
+
+class contact {
+    public $username;
+    public $userID;
+    public $publicKey;
+    public $contacts;
+
+    private $privateKey;
+
+    function __construct($username, $userID, $publicKey, $privateKey) {
+        $this->username = $username;
+        $this->userID = $userID;
+        $this->publicKey = $publicKey;
+        $this->privateKey = $privateKey;
+        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts;";
+        $conn = databaseConnect();
+        $resultOfQuery = mysqli_query($conn, $SQL);
+        $this->contacts = array();
+        while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
+            if ( $dataOfQuery["contact"] != NULL ) {
+                array_push($this->contacts, $dataOfQuery["contact"]);
+            }
         }
     }
 }
