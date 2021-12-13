@@ -180,7 +180,6 @@ class contact {
     public $username;
     public $userID;
     public $publicKey;
-    public $contacts;
 
     private $privateKey;
 
@@ -189,15 +188,21 @@ class contact {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
-        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts;";
+        header('Location: ../messages/contactsPage.php');
+    }
+
+    function getPrivateKey() {
+        return $this->privateKey;
+    }
+
+    function newMessage($message) {
+        $currentUser = $_SESSION["currentUser"];
+        openssl_public_encrypt($message, $encryptedMessage, $currentUser->publicKey);
+        $encryptedMessage = prepUserInput(bin2hex($encryptedMessage));
+        $SQL = "INSERT INTO `messages` (`userIDa`, `userIDb`, `message`) VALUES ('$currentUser->userID', '$this->userID', '$encryptedMessage');";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
-        $this->contacts = array();
-        while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
-            if ( $dataOfQuery["contact"] != NULL ) {
-                array_push($this->contacts, $dataOfQuery["contact"]);
-            }
-        }
-    }
+    } // PROBLEMS: in messages table, userIDa and userIDb need to be consistent with the contacts table or else the messages will not know what user sent it
+        // NEED better method to encrypt messages because current method sucks balls, essentially only useful if attacker has stolen entire messages table. and nothing else.
 }
 ?>
