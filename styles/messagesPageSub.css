@@ -1,0 +1,32 @@
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+#messagesFrame {
+    height: calc(100% - 160px);
+    width: 100%;
+    margin: 0;
+    background: lightpink;
+}
+form {
+    height: 160px;
+    width: 100%;
+    margin: 0;
+}
+form textarea {
+    width: 80%;
+    height: 100%;
+    border: none;
+    overflow: none;
+    resize: none;
+    margin: 0;
+    background: lightgreen;
+    padding: 10px;
+}
+form button {
+    width: 20%;
+    border: none;
+    height: 160px;
+    float: right;
+}

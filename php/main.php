@@ -39,8 +39,8 @@ function userSignUp($username, $password, $confirmPassword) { # Takes a username
 
         if ( $numberOfRows == 0 ) { # If nothing was returned from the previous SQL query
             $keys = generateEncryptionKeys(); # Uses the generateEncryptionKeys() function to generate a key pair and stores that in an array
-            $privateKey = $keys[0]; # Sets the variable privateKey to the 1st item in the array
-            $publicKey = $keys[1]; # Sets the variable publicKey to the 2nd item in the array
+            $privateKey = $keys[1]; # Sets the variable privateKey to the 1st item in the array
+            $publicKey = $keys[0]; # Sets the variable publicKey to the 2nd item in the array
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT); # Hashes the password using the built-in password_hash() function
 
             $SQL = "INSERT INTO `users` ( `username`, `password`, `privateKey`, `publicKey`) VALUES ('$username', '$hashedPassword', '$publicKey', '$privateKey');";
@@ -60,18 +60,18 @@ function userLogIn($username, $password) { # Takes a prepared username and passw
     
     $SQL = "SELECT * FROM `users` WHERE `username`='$username';"; # SQL query that selects all the variables for a user where the username is the one the user entered
     $resultOfQuery = mysqli_query($conn, $SQL); # Queries the database with the previous SQL query
-    $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Stores the data fetched by the query 
+    $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Stores the data fetched by the query
     
-    if ( password_verify($password, $dataOfQuery["password"]) ) {
-        echo "the username and password you entered were a valid combination";
+    if ( password_verify($password, $dataOfQuery["password"]) ) { # Compares the password that the user entered with the one stored in the table
+        echo "the username and password you entered were a valid combination"; # if it was successful tell the user they entered a correct username/password combo
 
-        $userID = $dataOfQuery["userID"];
+        $userID = $dataOfQuery["userID"]; # Saves the variables returned from query into these temporary variables
         $publicKey = $dataOfQuery["publicKey"];
         $privateKey = $dataOfQuery["privateKey"];
 
-        $currentUser = new user($username, $userID, $publicKey, $privateKey);
+        $currentUser = new user($username, $userID, $publicKey, $privateKey); # Creates a new user class object using the data fetched from the query
 
-        $_SESSION["currentUser"] = $currentUser;
+        $_SESSION["currentUser"] = $currentUser; # Stores the new user object as a session variable
     }
 }
 
@@ -92,6 +92,22 @@ function generateEncryptionKeys() {
     return $keys;
 }
 
+function determineUserIDSize($size, $userID_1, $userID_2) {
+    if ( $size == TRUE ) { # If size input is TRUE then return largest userID
+        if ( $userID_1 < $userID_2 ) { # If userID_1 is less than userID_2 then
+            return $userID_2; # Return userID_2 (the bigger value)
+        } else { # If userID_2 is less than userID_1 then
+            return $userID_1; # Return userID_1 (the bigger value)
+        }
+    } else { # If size input is FALSE then return smallest userID
+        if ( $userID_1 < $userID_2 ) { # If userID_1 is less than userID_2 then
+            return $userID_1; # Return userID_1 (the smaller value)
+        } else { # If userID_2 is less than userID_1 then
+            return $userID_2; # Return userID_2 (the smaller value)
+        }
+    }
+}
+
 class user {
     public $username;
     public $userID;
@@ -105,7 +121,7 @@ class user {
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
-        $SQL = "SELECT CASE WHEN userIDa='$this->userID' THEN userIDb WHEN userIDb='$this->userID' THEN userIDa END AS contact FROM contacts;";
+        $SQL = "SELECT CASE WHEN userIDlow='$this->userID' THEN userIDhigh WHEN userIDhigh='$this->userID' THEN userIDlow END AS contact FROM contacts;";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
         $this->contacts = array();
@@ -116,8 +132,11 @@ class user {
         }
     }
 
-    function setPassword($password) {
-        $this->password = $password;
+    function updatePassword($password) {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';";
+        $conn = databaseConnect();
+        $resultOfQuery = mysqli_query($conn, $SQL);
     }
 
     function getUserID() {
@@ -144,9 +163,12 @@ class user {
         $numberOfRows = mysqli_num_rows($resultOfQuery);
         $contactUserID = $dataOfQuery["userID"];
         
+        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $contactUserID);
+        $highestUserID = determineUserIDSize(TRUE, $this->userID, $contactUserID);
+
         if ( $numberOfRows != 0 ) {
             array_push($this->contacts, $contactUserID);
-            $SQL = "INSERT INTO `contacts` (`userIDa`, `userIDb`) VALUES ('$this->userID', '$contactUserID');";
+            $SQL = "INSERT INTO `contacts` (`userIDlow`, `userIDhigh`) VALUES ('$lowestUserID', '$highestUserID');";
             $resultOfQuery = mysqli_query($conn, $SQL);
         } else {
             echo "the user that you tried to add does not exist";
@@ -199,10 +221,13 @@ class contact {
         $currentUser = $_SESSION["currentUser"];
         openssl_public_encrypt($message, $encryptedMessage, $currentUser->publicKey);
         $encryptedMessage = prepUserInput(bin2hex($encryptedMessage));
-        $SQL = "INSERT INTO `messages` (`userIDa`, `userIDb`, `message`) VALUES ('$currentUser->userID', '$this->userID', '$encryptedMessage');";
+
+        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $currentUser->userID);
+        $highestUserID = determineUserIDSize(TRUE, $this->userID, $currentUser->userID);
+        
+        $SQL = "INSERT INTO `messages` (`userIDlow`, `userIDhigh`, `message`) VALUES ('$lowestUserID', '$highestUserID', '$encryptedMessage');";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
-    } // PROBLEMS: in messages table, userIDa and userIDb need to be consistent with the contacts table or else the messages will not know what user sent it
-        // NEED better method to encrypt messages because current method sucks balls, essentially only useful if attacker has stolen entire messages table. and nothing else.
+    }  // NEED better method to encrypt messages because current method sucks balls, essentially only useful if attacker has stolen entire messages table. and nothing else.
 }
 ?>
