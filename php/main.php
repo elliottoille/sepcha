@@ -116,18 +116,19 @@ class user {
 
     private $privateKey;
 
-    function __construct($username, $userID, $publicKey, $privateKey) {
-        $this->username = $username;
+    function __construct($username, $userID, $publicKey, $privateKey) { # Creation of new entity takes these 4 parameters
+        $this->username = $username; # Assigns the objects variables to the ones entered as parameters
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
         $SQL = "SELECT CASE WHEN userIDlow='$this->userID' THEN userIDhigh WHEN userIDhigh='$this->userID' THEN userIDlow END AS contact FROM contacts;";
-        $conn = databaseConnect();
-        $resultOfQuery = mysqli_query($conn, $SQL);
-        $this->contacts = array();
-        while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) {
-            if ( $dataOfQuery["contact"] != NULL ) {
-                array_push($this->contacts, $dataOfQuery["contact"]);
+        # SQL statement that fetches the userID of any contacts belonging to the user with the current entities userID from the contacts table
+        $conn = databaseConnect(); # Set $conn to the result of the databaseConnect() function
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the previous SQL query
+        $this->contacts = array(); # Set the object's contacts variable to a blank array
+        while ( $dataOfQuery = mysqli_fetch_assoc($resultOfQuery) ) { # While loop that goes through every returned row
+            if ( $dataOfQuery["contact"] != NULL ) { # Check if the given result is NULL
+                array_push($this->contacts, $dataOfQuery["contact"]); # If not NULL then push this result to the contacts array
             }
         }
     }
@@ -225,9 +226,51 @@ class contact {
         $lowestUserID = determineUserIDSize(FALSE, $this->userID, $currentUser->userID);
         $highestUserID = determineUserIDSize(TRUE, $this->userID, $currentUser->userID);
         
-        $SQL = "INSERT INTO `messages` (`userIDlow`, `userIDhigh`, `message`) VALUES ('$lowestUserID', '$highestUserID', '$encryptedMessage');";
+        $SQL = "INSERT INTO `messages` (`userIDlow`, `userIDhigh`, `senderID`, `message`) VALUES ('$lowestUserID', '$highestUserID', '$currentUser->userID', '$encryptedMessage');";
         $conn = databaseConnect();
         $resultOfQuery = mysqli_query($conn, $SQL);
     }  // NEED better method to encrypt messages because current method sucks balls, essentially only useful if attacker has stolen entire messages table. and nothing else.
+
+    function renderMessages() {
+        $currentUser = $_SESSION["currentUser"];
+        $userIDlow = determineUserIDSize(FALSE, $this->userID, $currentUser->userID);
+        $userIDhigh = determineUserIDSize(TRUE, $this->userID, $currentUser->userID);
+        $conn = databaseConnect();
+
+        $SQL = "SELECT `userIDlow`, `userIDhigh`, `senderID`, `message` FROM `messages` WHERE `userIDlow`='$userIDlow' AND `userIDhigh`='$userIDhigh';";
+        
+        $resultOfQuery = mysqli_query($conn, $SQL);
+        while ( $record = mysqli_fetch_assoc($resultOfQuery) ) {
+            $message = $record["message"];
+            $message = hex2bin($message);
+
+            switch ( $record["senderID"] ) {
+                case $this->userID: # If the sender was the contact then
+                    openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
+                    echo "1";
+                    echo $decryptedMessage;
+                    echo "2";
+                    $HTML = '
+                    <div id="stretch">
+                        <div id="left" class="message">
+                        ' . $decryptedMessage . '
+                        </div>
+                    </div>
+                    ';
+                    break;
+                case $currentUser->userID: # If the sender was the user then
+                    openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+                    $HTML = '
+                    <div id="stretch">
+                        <div id="right" class="message">
+                        ' . $decryptedMessage . '
+                        </div>
+                    </div>
+                    ';
+                    break;
+            }
+            echo $HTML;
+        }
+    }
 }
 ?>
