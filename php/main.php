@@ -156,7 +156,7 @@ class user {
         return $this->privateKey;
     }
 
-    function newContact($contactUsername) {
+    function newContact($contactUsername) { # Take the entered 
         $conn = databaseConnect();
         $SQL = "SELECT `userID` FROM `users` WHERE `username`='$contactUsername';";
         $resultOfQuery = mysqli_query($conn, $SQL);
@@ -244,12 +244,14 @@ class contact {
             $message = $record["message"];
             $message = hex2bin($message);
 
+            openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
+            openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+
             switch ( $record["senderID"] ) {
                 case $this->userID: # If the sender was the contact then
-                    openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
-                    echo "1";
-                    echo $decryptedMessage;
-                    echo "2";
+                    #openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
+                    $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
+                    $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
                     $HTML = '
                     <div id="stretch">
                         <div id="left" class="message">
@@ -259,7 +261,9 @@ class contact {
                     ';
                     break;
                 case $currentUser->userID: # If the sender was the user then
-                    openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+                    #openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+                    $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
+                    $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
                     $HTML = '
                     <div id="stretch">
                         <div id="right" class="message">
