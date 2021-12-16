@@ -75,21 +75,21 @@ function userLogIn($username, $password) { # Takes a prepared username and passw
     }
 }
 
-function generateEncryptionKeys() {
-    $config = array(
+function generateEncryptionKeys() { # Define a new function that takes no parameters
+    $config = array( # Define an array of the configuration variables for the built-in functions
         "digest_alg" => "sha512",
         "private_key_bits" => 512,
         "private_key_type" => OPENSSL_KEYTYPE_RSA
     );
-    $resultOfGen = openssl_pkey_new($config);
-    openssl_pkey_export($resultOfGen, $privateKey);
-    $publicKey = openssl_pkey_get_details($resultOfGen);
-    $publicKey = $publicKey["key"];
-    $keys = array (
+    $resultOfGen = openssl_pkey_new($config); # Use built-in functions to generate a new key pair
+    openssl_pkey_export($resultOfGen, $privateKey); # Store the generated privateKey in the variable $privateKey
+    $publicKey = openssl_pkey_get_details($resultOfGen); # Store the generated publicKey in the variable $publicKey
+    $publicKey = $publicKey["key"]; # Overwrite $publicKey with the actual key value $publicKey 
+    $keys = array ( # Create an array that stores both keys in it
         $privateKey,
         $publicKey
     );
-    return $keys;
+    return $keys; # Return the array of both keys
 }
 
 function determineUserIDSize($size, $userID_1, $userID_2) {
@@ -156,45 +156,47 @@ class user {
         return $this->privateKey;
     }
 
-    function newContact($contactUsername) { # Take the entered 
-        $conn = databaseConnect();
-        $SQL = "SELECT `userID` FROM `users` WHERE `username`='$contactUsername';";
-        $resultOfQuery = mysqli_query($conn, $SQL);
-        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
-        $numberOfRows = mysqli_num_rows($resultOfQuery);
-        $contactUserID = $dataOfQuery["userID"];
+    function newContact($contactUsername) { # Take the entered username as a parameter
+        $conn = databaseConnect(); # Set $conn to the result of the databaseConnect() function
+        $SQL = "SELECT `userID` FROM `users` WHERE `username`='$contactUsername';"; # SQL query to fetch the userID associated with the entered username
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the aforementioned SQL query
+        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Store the data fetched from the SQL query in this variable
+        $numberOfRows = mysqli_num_rows($resultOfQuery); # Fetch the number of rows returned from the SQL query
+        $contactUserID = $dataOfQuery["userID"]; # Fetch the userID of the entered username
         
-        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $contactUserID);
-        $highestUserID = determineUserIDSize(TRUE, $this->userID, $contactUserID);
+        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $contactUserID); # Call determineUserIDSize() function set to determine lowest with both UIDs as inputs
+        $highestUserID = determineUserIDSize(TRUE, $this->userID, $contactUserID); # Call determineUserIDSize() function set to determine highest with both UIDs as inputs
 
-        if ( $numberOfRows != 0 ) {
-            array_push($this->contacts, $contactUserID);
+        if ( $numberOfRows != 0 ) { # If a result was fetched from the SQL query then
+            array_push($this->contacts, $contactUserID); # Add the fetched userID to the user's contacts array
             $SQL = "INSERT INTO `contacts` (`userIDlow`, `userIDhigh`) VALUES ('$lowestUserID', '$highestUserID');";
-            $resultOfQuery = mysqli_query($conn, $SQL);
-        } else {
-            echo "the user that you tried to add does not exist";
+            # SQL query to insert the correct userIDs into the correct position in the contacts table
+            $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the aforementioned SQL query
+        } else { # If nothing was returned from the original SQL query then
+            echo "the user that you tried to add does not exist"; # Tell the user that the person they tried to add doesn't exist
             return;
         }
     }
 
-    function renderContacts() {
-        $conn = databaseConnect();
-        $contacts = $this->contacts;
-        if ( !(count($contacts) == 0) ) {
-            foreach ($this->contacts as $contact) { // THIS IS VERY SLOW, CAN DO IN ONE SQL QUERY DON'T EVEN NEED CONTACTS ARRAY I THINK
-                $SQL = "SELECT username FROM users WHERE userID='$contact';";
-                $resultOfQuery = mysqli_query($conn, $SQL);
-                $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
-                $contactUsername = $dataOfQuery["username"];
+    function renderContacts() { # Define a new function that takes no parameters
+        $conn = databaseConnect(); # Set $conn to the result of databaseConnect() function
+        $contacts = $this->contacts; # Fetch the current user's array of contacts
+        if ( !(count($contacts) == 0) ) { # If the user has a contact in their contacts array then
+            foreach ($contacts as $contact) { # Loop through each contact in the array
+                $SQL = "SELECT username FROM users WHERE userID='$contact';"; # SQL query to return the username associated with the current loops UID (contact variable)
+                $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the previous SQL query
+                $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Fetch the data returned from the SQL query
+                $contactUsername = $dataOfQuery["username"]; # Set $contactUsername to the username that the SQL query returned
                 $HTML = '<li id="contactLi">
                             <form action="../formphp/setCurrentContact.php" method="POST">
                                 <button id="contactBtn" name="contact" value=' . $contact . ' type="submit">' . $contactUsername . ' </button>
                             </form>
-                        </li>';
-                echo $HTML;
+                        </li>'; # HTML code that creates a LI that contains a form with a button that runs the file "setCurrentContact.php" when the button is clicked
+                        # The value of the button is the current contact's UID and the text that is displayed to the user is the contact's username
+                echo $HTML; # Output the HTML code on the page from which this function is called
             }
         } else {
-            echo "you have no contacts added";
+            echo "you have no contacts added"; # If the contacts array is empty then output this message to the user
         }
     }
 }
@@ -206,30 +208,35 @@ class contact {
 
     private $privateKey;
 
-    function __construct($username, $userID, $publicKey, $privateKey) {
-        $this->username = $username;
+    function __construct($username, $userID, $publicKey, $privateKey) { # function that creates a new object that takes these parameters
+        $this->username = $username; # Set the object's variables to the values passed as parameters.
         $this->userID = $userID;
         $this->publicKey = $publicKey;
         $this->privateKey = $privateKey;
-        header('Location: ../messages/contactsPage.php');
+        header('Location: ../messages/contactsPage.php'); # Redirect the user to the contactsPage.php when the previous code is ran
     }
 
     function getPrivateKey() {
         return $this->privateKey;
+        # Returns the privateKey of the current Object
     }
 
-    function newMessage($message) {
-        $currentUser = $_SESSION["currentUser"];
-        openssl_public_encrypt($message, $encryptedMessage, $currentUser->publicKey);
-        $encryptedMessage = prepUserInput(bin2hex($encryptedMessage));
+    function newMessage($message) { # Define a function that takes a message as a parameter
+        $currentUser = $_SESSION["currentUser"]; # Set $currentUser to the session variable of the current logged in user
+        openssl_public_encrypt($message, $encryptedMessage, $currentUser->publicKey); # Encrypt the passed message using the publicKey of the current logged in user
+        $encryptedMessage = prepUserInput(bin2hex($encryptedMessage)); # Convert the encrypted message from binary to hexadecimal
+        # then call the prepUserInput() function on it
 
-        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $currentUser->userID);
-        $highestUserID = determineUserIDSize(TRUE, $this->userID, $currentUser->userID);
+        $lowestUserID = determineUserIDSize(FALSE, $this->userID, $currentUser->userID); # Use the determineUserIDSize() function to create variables
+        $highestUserID = determineUserIDSize(TRUE, $this->userID, $currentUser->userID); # Of the highest UID and the lowest UID
         
         $SQL = "INSERT INTO `messages` (`userIDlow`, `userIDhigh`, `senderID`, `message`) VALUES ('$lowestUserID', '$highestUserID', '$currentUser->userID', '$encryptedMessage');";
-        $conn = databaseConnect();
-        $resultOfQuery = mysqli_query($conn, $SQL);
-    }  // NEED better method to encrypt messages because current method sucks balls, essentially only useful if attacker has stolen entire messages table. and nothing else.
+        /* SQL query that inserts the encrypted message into the messages table,
+        as well as passing the two userIDs that function as a foreign key to the contacts table,
+        and passes the UID of the currently logged in user as the senderID variable */
+        $conn = databaseConnect(); # Set $conn to the result of the databaseConnect() function
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the aforementioned SQL statement
+    }
 
     function renderMessages() {
         $currentUser = $_SESSION["currentUser"];
@@ -244,12 +251,9 @@ class contact {
             $message = $record["message"];
             $message = hex2bin($message);
 
-            openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
-            openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
-
             switch ( $record["senderID"] ) {
                 case $this->userID: # If the sender was the contact then
-                    #openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
+                    openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
                     $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
                     $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
                     $HTML = '
@@ -261,7 +265,7 @@ class contact {
                     ';
                     break;
                 case $currentUser->userID: # If the sender was the user then
-                    #openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+                    openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
                     $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
                     $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
                     $HTML = '
