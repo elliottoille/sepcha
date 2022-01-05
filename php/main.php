@@ -223,7 +223,7 @@ class contact {
 
     function newMessage($message) { # Define a function that takes a message as a parameter
         $currentUser = $_SESSION["currentUser"]; # Set $currentUser to the session variable of the current logged in user
-        openssl_public_encrypt($message, $encryptedMessage, $currentUser->publicKey); # Encrypt the passed message using the publicKey of the current logged in user
+        openssl_public_encrypt($message, $encryptedMessage, $this->publicKey); # Encrypt the passed message using the publicKey of the current logged in user
         $encryptedMessage = prepUserInput(bin2hex($encryptedMessage)); # Convert the encrypted message from binary to hexadecimal
         # then call the prepUserInput() function on it
 
