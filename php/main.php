@@ -250,12 +250,16 @@ class contact {
         while ( $record = mysqli_fetch_assoc($resultOfQuery) ) {
             $message = $record["message"];
             $message = hex2bin($message);
-
+            $HTML = "";
             switch ( $record["senderID"] ) {
                 case $this->userID: # If the sender was the contact then
                     openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
-                    $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
-                    $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
+
+                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage);
+
+                    $decryptedMessage = stripcslashes($decryptedMessage);
+                    $decryptedMessage = rtrim($decryptedMessage);
+
                     $HTML = '
                     <div id="stretch">
                         <div id="left" class="message">
@@ -266,8 +270,12 @@ class contact {
                     break;
                 case $currentUser->userID: # If the sender was the user then
                     openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
-                    $decryptedMessage = str_replace("\\n", "<br>", $decryptedMessage);
-                    $decryptedMessage = str_replace("\\r", "<br>", $decryptedMessage);
+
+                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage);
+
+                    $decryptedMessage = stripcslashes($decryptedMessage);
+                    $decryptedMessage = rtrim($decryptedMessage);
+
                     $HTML = '
                     <div id="stretch">
                         <div id="right" class="message">
