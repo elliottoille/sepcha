@@ -201,6 +201,14 @@ class user {
     }
 }
 
+function cleanMessage($message) {
+    $message = strip_tags($message);
+    $message = stripcslashes($message);
+    $message = trim(preg_replace('\R', ' ', $message));
+    //$message = preg_replace("/[^a-zA-Z0-9\s]/", "", $message);
+    return $message;
+}
+
 class contact {
     public $username;
     public $userID;
@@ -223,6 +231,9 @@ class contact {
 
     function newMessage($message) { # Define a function that takes a message as a parameter
         $currentUser = $_SESSION["currentUser"]; # Set $currentUser to the session variable of the current logged in user
+
+        $message = prepUserInput($message);
+
         openssl_public_encrypt($message, $encryptedMessage, $this->publicKey); # Encrypt the passed message using the publicKey of the current logged in user
         $encryptedMessage = prepUserInput(bin2hex($encryptedMessage)); # Convert the encrypted message from binary to hexadecimal
         # then call the prepUserInput() function on it
@@ -239,53 +250,54 @@ class contact {
     }
 
     function renderMessages() {
-        $currentUser = $_SESSION["currentUser"];
-        $userIDlow = determineUserIDSize(FALSE, $this->userID, $currentUser->userID);
-        $userIDhigh = determineUserIDSize(TRUE, $this->userID, $currentUser->userID);
-        $conn = databaseConnect();
+        $currentUser = $_SESSION["currentUser"]; # Fetch the session variable currentUser
+        $userIDlow = determineUserIDSize(FALSE, $this->userID, $currentUser->userID); # Set userIDlow to be the lowest of the contact's and user's IDs
+        $userIDhigh = determineUserIDSize(TRUE, $this->userID, $currentUser->userID); # Set userIDhigh to be the highest of the contact's and user's IDs
+        $conn = databaseConnect(); # Set conn to the result of the databaseConnect() function
 
-        $SQL = "SELECT `userIDlow`, `userIDhigh`, `senderID`, `message` FROM `messages` WHERE `userIDlow`='$userIDlow' AND `userIDhigh`='$userIDhigh';";
-        
-        $resultOfQuery = mysqli_query($conn, $SQL);
-        while ( $record = mysqli_fetch_assoc($resultOfQuery) ) {
-            $message = $record["message"];
-            $message = hex2bin($message);
-            $HTML = "";
-            switch ( $record["senderID"] ) {
+        $SQL = "SELECT `senderID`, `message` FROM `messages` WHERE `userIDlow`='$userIDlow' AND `userIDhigh`='$userIDhigh';";
+        # SQL statement that fetches senderID and message from the messages table where they are in the correct conversation (userIDlow and userIDhigh match eachother)
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the previous SQL statement
+        while ( $record = mysqli_fetch_assoc($resultOfQuery) ) { # Loop through each different message returned by the query
+            $message = $record["message"]; # Get the fetched message from each record
+            $message = hex2bin($message); # Convert the message from hexadecimal to binary
+            switch ( $record["senderID"] ) { # Switch-case for the senderID of this message
                 case $this->userID: # If the sender was the contact then
-                    openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey());
+                    openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey()); # Decrypt the message using the logged in user's private key
 
-                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage);
+                    /*$decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage); # Remove any \r or \n in the decrypted message
 
-                    $decryptedMessage = stripcslashes($decryptedMessage);
-                    $decryptedMessage = rtrim($decryptedMessage);
-
+                    $decryptedMessage = stripcslashes($decryptedMessage); # Remove extra slashes from the decrypted message
+                    $decryptedMessage = rtrim($decryptedMessage); # Remove any whitespace at the end of the decrypted message
+                    */
+                    $decryptedMessage = cleanMessage($decryptedMessage);
                     $HTML = '
                     <div id="stretch">
                         <div id="left" class="message">
                         ' . $decryptedMessage . '
                         </div>
                     </div>
-                    ';
-                    break;
+                    '; # HTML code that displays the message on the left side of the screen
+                    break; # Exit switch-case
                 case $currentUser->userID: # If the sender was the user then
-                    openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey());
+                    openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey()); # Decrypt the message using the contact's private key
+                    /*
+                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage); # Remove any \r or \n in the decrypted message
 
-                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage);
-
-                    $decryptedMessage = stripcslashes($decryptedMessage);
-                    $decryptedMessage = rtrim($decryptedMessage);
-
+                    $decryptedMessage = stripcslashes($decryptedMessage); # Remove extra slashes from the decypted message
+                    $decryptedMessage = rtrim($decryptedMessage); # Remove any whitepsace at the end of the decrypted message
+                    */
+                    $decryptedMessage = cleanMessage($decryptedMessage);
                     $HTML = '
                     <div id="stretch">
                         <div id="right" class="message">
                         ' . $decryptedMessage . '
                         </div>
                     </div>
-                    ';
-                    break;
+                    '; # HTML code that displays the decrypted message on the right side of the screen
+                    break; # Exit switch-case
             }
-            echo $HTML;
+            echo $HTML; # Print the generated HTML code to the webpage
         }
     }
 }
