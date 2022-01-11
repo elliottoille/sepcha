@@ -202,11 +202,12 @@ class user {
 }
 
 function cleanMessage($message) {
-    $message = strip_tags($message);
-    $message = stripcslashes($message);
-    $message = trim(preg_replace('\R', ' ', $message));
-    //$message = preg_replace("/[^a-zA-Z0-9\s]/", "", $message);
-    return $message;
+    $message = htmlspecialchars($message); # Escape any HTML characters in the message
+    $message = stripcslashes($message); # Remove slashes that appear before special characters
+    $message = str_ireplace(array("\r","\n",'\r','\n'),'<br>', $message); # Convert PHP newline tags to HTML newline tags
+    $message = stripslashes($message); # Remove any remaing special character slashes
+
+    return $message; # Return the formatted string
 }
 
 class contact {
@@ -265,12 +266,8 @@ class contact {
                 case $this->userID: # If the sender was the contact then
                     openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey()); # Decrypt the message using the logged in user's private key
 
-                    /*$decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage); # Remove any \r or \n in the decrypted message
-
-                    $decryptedMessage = stripcslashes($decryptedMessage); # Remove extra slashes from the decrypted message
-                    $decryptedMessage = rtrim($decryptedMessage); # Remove any whitespace at the end of the decrypted message
-                    */
-                    $decryptedMessage = cleanMessage($decryptedMessage);
+                    $decryptedMessage = cleanMessage($decryptedMessage); # Call the cleanMessage function to prepare the text for displaying
+                    
                     $HTML = '
                     <div id="stretch">
                         <div id="left" class="message">
@@ -281,13 +278,8 @@ class contact {
                     break; # Exit switch-case
                 case $currentUser->userID: # If the sender was the user then
                     openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey()); # Decrypt the message using the contact's private key
-                    /*
-                    $decryptedMessage = str_replace(array("\r", "\n"), '', $decryptedMessage); # Remove any \r or \n in the decrypted message
 
-                    $decryptedMessage = stripcslashes($decryptedMessage); # Remove extra slashes from the decypted message
-                    $decryptedMessage = rtrim($decryptedMessage); # Remove any whitepsace at the end of the decrypted message
-                    */
-                    $decryptedMessage = cleanMessage($decryptedMessage);
+                    //$decryptedMessage = cleanMessage($decryptedMessage); # Call the cleanMessage function to prepare the text for displaying
                     $HTML = '
                     <div id="stretch">
                         <div id="right" class="message">
