@@ -46,6 +46,12 @@ function userSignUp($username, $password, $confirmPassword) { # Takes a username
             $SQL = "INSERT INTO `users` ( `username`, `password`, `privateKey`, `publicKey`) VALUES ('$username', '$hashedPassword', '$publicKey', '$privateKey');";
             # SQL query that inserts the data for the user into the users table
             $resultOfQuery = mysqli_query($conn, $SQL); # Queries the database with the previous SQL query
+            $SQL = "SELECT userID FROM `users` WHERE `username`='$username';";
+            $resultOfQuery = mysqli_query($conn, $SQL);
+            $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+            $userID = $dataOfQuery["userID"];
+            $SQL = "INSERT INTO `settings` (`userID`, `font`) VALUES ('$userID', 'Arial')";
+            $resultOfQuery = mysqli_query($conn, $SQL);
             userLogIn($username, $password); # Calls the userLogIn() function with the entered username and password
         } else { # If the first query resulted in a piece of data being returned then
             echo "a user with that username already exists";
@@ -113,6 +119,7 @@ class user {
     public $userID;
     public $publicKey;
     public $contacts;
+    public $settings;
 
     private $privateKey;
 
@@ -131,6 +138,12 @@ class user {
                 array_push($this->contacts, $dataOfQuery["contact"]); # If not NULL then push this result to the contacts array
             }
         }
+        $SQL = "SELECT * FROM settings WHERE userID='$userID';";
+        $resultOfQuery = mysqli_query($conn, $SQL);
+        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+        $this->settings = array(
+            "font" => $dataOfQuery["font"],
+        );
     }
 
     function updatePassword($password) {
@@ -265,9 +278,7 @@ class contact {
             switch ( $record["senderID"] ) { # Switch-case for the senderID of this message
                 case $this->userID: # If the sender was the contact then
                     openssl_private_decrypt($message, $decryptedMessage, $currentUser->getPrivateKey()); # Decrypt the message using the logged in user's private key
-
                     $decryptedMessage = cleanMessage($decryptedMessage); # Call the cleanMessage function to prepare the text for displaying
-                    
                     $HTML = '
                     <div id="stretch">
                         <div id="left" class="message">
@@ -278,8 +289,7 @@ class contact {
                     break; # Exit switch-case
                 case $currentUser->userID: # If the sender was the user then
                     openssl_private_decrypt($message, $decryptedMessage, $this->getPrivateKey()); # Decrypt the message using the contact's private key
-
-                    //$decryptedMessage = cleanMessage($decryptedMessage); # Call the cleanMessage function to prepare the text for displaying
+                    $decryptedMessage = cleanMessage($decryptedMessage); # Call the cleanMessage function to prepare the text for displaying
                     $HTML = '
                     <div id="stretch">
                         <div id="right" class="message">

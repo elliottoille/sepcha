@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="../../styles/font.css">
+<link rel="stylesheet" href="../../styles/font.php">
 <link rel="stylesheet" href="../../styles/contactsTab.css">
 <ul>
     <li><form method="POST" action="../formphp/newContact.php">
