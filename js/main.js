@@ -16,3 +16,8 @@ function checkPasswordMatch() {
         return false;
     }
 }
+
+function changeStyleSheet(stylesheet, property, value) {
+    document.getElementById("testButton").innerHTML = "fart bitch";
+    document.body.style.fontFamily = value;
+}

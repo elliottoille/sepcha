@@ -11,5 +11,6 @@ if ( $_SERVER["REQUEST_METHOD"] == "POST" ) { # If the files receives a POST req
     $currentContact = new contact($dataOfQuery["username"], $userID, $dataOfQuery["publicKey"], $dataOfQuery["privateKey"]);
     # Set $currentContact to be a new contact object, that takes the variables fetched from the database and the userID that was passed via the button press as parameters
     $_SESSION["currentContact"] = $currentContact; # Create a session variable "currentContact" to the object that was just created
+    header('Location: ../messages/contactsPage.php');
 }
 ?>

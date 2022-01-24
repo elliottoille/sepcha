@@ -1,6 +1,6 @@
 <html>
     <head>
-        <link rel="stylesheet" href="../../styles/font.php">
+        <link rel="stylesheet" href="../../styles/font.css">
         <link rel="stylesheet" href="../../styles/messages.css">
     </head>
     <body>

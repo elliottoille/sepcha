@@ -202,7 +202,7 @@ class user {
                 $contactUsername = $dataOfQuery["username"]; # Set $contactUsername to the username that the SQL query returned
                 $HTML = '<li id="contactLi">
                             <form action="../formphp/setCurrentContact.php" method="POST">
-                                <button id="contactBtn" name="contact" value=' . $contact . ' type="submit">' . $contactUsername . ' </button>
+                                <button onclick="refreshIframe();" id="contactBtn" name="contact" value=' . $contact . ' type="submit">' . $contactUsername . ' </button>
                             </form>
                         </li>'; # HTML code that creates a LI that contains a form with a button that runs the file "setCurrentContact.php" when the button is clicked
                         # The value of the button is the current contact's UID and the text that is displayed to the user is the contact's username
@@ -211,6 +211,13 @@ class user {
         } else {
             echo "you have no contacts added"; # If the contacts array is empty then output this message to the user
         }
+    }
+
+    function updateFont($font) {
+        $conn = databaseConnect();
+        $this->settings["font"] = $font;
+        $SQL = "INSERT INTO settings (`userID`, `font`) VALUES (`$this->userID`, `$font`);";
+        $resultOfQuery = mysqli_query($conn, $SQL);
     }
 }
 
@@ -264,6 +271,13 @@ class contact {
     }
 
     function renderMessages() {
+       # echo '<meta http-equiv="refresh" content="2">'; # terrible method to refresh page every 2 secs
+        echo "<script>function refreshIframe() {
+            document.getElementById('sendBtn').addEventListener('click', function() {
+                var iframe = document.getElementById('messagesFrame');
+                iframe.contentWindow.location.reload(true);
+            });
+        }</script>";
         $currentUser = $_SESSION["currentUser"]; # Fetch the session variable currentUser
         $userIDlow = determineUserIDSize(FALSE, $this->userID, $currentUser->userID); # Set userIDlow to be the lowest of the contact's and user's IDs
         $userIDhigh = determineUserIDSize(TRUE, $this->userID, $currentUser->userID); # Set userIDhigh to be the highest of the contact's and user's IDs

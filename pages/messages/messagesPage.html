@@ -1,7 +1,15 @@
-<link rel="stylesheet" href="../../styles/font.php">
+<link rel="stylesheet" href="../../styles/font.css">
 <link rel="stylesheet" href="../../styles/messagesPageSub.css">
 <iframe id="messagesFrame" src="renderPage.php" frameborder="0" name="renderFrame"></iframe>
 <form action="../formphp/sendMessage.php" method="GET">
     <textarea placeholder="new message" name="message"></textarea>
-    <button type="submit">send</button>
+    <button id="sendbtn" type="submit">send</button>
 </form>
+<script type="text/javascript">
+    window.onload = function() {
+    var frameRefreshInterval = setInterval(function() {
+        document.getElementById("myframe").src = document.getElementById("myframe").src
+    }, 2000);
+    // any other code
+}
+</script>

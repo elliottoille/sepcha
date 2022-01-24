@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="../../../styles/font.php" media="screen">
+<link rel="stylesheet" href="../../../styles/font.css">
 <html>
     <body>
         <form action="../../formphp/applySettings.php">
@@ -9,7 +9,15 @@
             <label for="arial">Arial</label>
             <input id="georgia" type="radio" name="font" value="Georgia">
             <label for="georgia">Georgia</label>
-            <input type="submit" value="Apply Changes">
+            <input type="submit" value="Apply Changes" onclick="changeStyleSheet(`Arial`)">
         </form>
+
+        <button id="testButton" onclick="changeStyleSheet(`font`, `font-family`, `green`)">click to go green</button>
+        <script src="../../../js/main.js"></script>
+        <!--<script>
+            document.getElementById("testButton").onclick = changeStyleSheet('font', 'color', 'green');
+            
+            
+        </script>-->
     </body>
 </html>
