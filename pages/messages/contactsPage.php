@@ -10,6 +10,7 @@
         if ( isset($_SESSION["currentUser"]) ) {
             $currentUser = $_SESSION["currentUser"];
             $currentUser->renderContacts();
+            $_SESSION["currentUser"]->renderUserSettings();
         } else {
             echo "you are not logged in";
         }

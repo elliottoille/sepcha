@@ -6,7 +6,9 @@
     <body>
         <?php
             include '../../php/main.php';
-
+            if ( isset($_SESSION["currentUser"]) ) {
+                $_SESSION["currentUser"]->renderUserSettings();
+            }
             if ( isset($_SESSION["currentContact"]) ) {
                 $currentContact = $_SESSION["currentContact"];
                 $currentContact->renderMessages();

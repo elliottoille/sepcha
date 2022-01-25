@@ -2,6 +2,7 @@ body {
     height: 100%;
     width: 100%;
     margin: 0;
+    background-color: --background;
 }
 ul {
     list-style: none;
@@ -9,7 +10,7 @@ ul {
     padding: 0;
     margin: 0;
     padding-left: 120px;
-    background: red;
+    background: --accent;
 }
 li {
     float: left;
@@ -19,7 +20,7 @@ li {
     line-height: 40px;
 }
 a {
-    color: #222;
+    color: --text;
     text-decoration: none;
 }
 li:hover {
