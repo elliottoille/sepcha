@@ -16,13 +16,19 @@ if (isset( $_SESSION["currentUser"] )) {
             <input id="georgia" type="radio" name="font" value="Georgia">
             <label for="georgia">Georgia</label>
             <br>
-            <label>Theme:</label>
-            <input id="light" type="radio" name="theme" value="light" checked>
-            <label for="light">Light</label>
-            <input id="dark" type="radio" name="theme" value="dark">
-            <label for="dark">Dark</label>
-            <input id="dusk" type="radio" name="theme" value="dusk">
-            <label for="dusk">Dusk</label>
+            
+            <label>Background:</label>
+            <input id="background" type="color" name="background" <?php echo "value='" . $user->settings["background"] . "'";?>>
+            <br>
+            <label>Hover:</label>
+            <input id="hover" type="color" name="hover" <?php echo "value='" . $user->settings["hover"] . "'";?>>
+            <br>
+            <label>Secondary:</label>
+            <input id="secondary" type="color" name="secondary" <?php echo "value='" . $user->settings["secondary"] . "'";?>>
+            <br>
+            <label>Text:</label>
+            <input id="text" type="color" name="text" <?php echo "value='" . $user->settings["text"] . "'";?>>
+
             <input type="submit" value="Apply Changes">
         </form>
     </body>

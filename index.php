@@ -9,7 +9,6 @@ if (isset( $_SESSION["currentUser"] )) {
     <head>
         <title>SEPCHA</title>
         <link rel="stylesheet" href="styles/index.css">
-        <link rel="stylesheet" href="styles/font.css">
         <meta charset="utf-8"/>
     </head>
     <body>

@@ -7,7 +7,7 @@ body {
     height: calc(100% - 160px);
     width: 100%;
     margin: 0;
-    background: lightpink;
+    background: var(--background);
 }
 form {
     height: 160px;
@@ -21,8 +21,9 @@ form textarea {
     overflow: none;
     resize: none;
     margin: 0;
-    background: lightgreen;
+    background: var(--highlight);
     padding: 10px;
+    color: var(--text);
 }
 form button {
     width: 20%;

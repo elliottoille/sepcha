@@ -22,7 +22,8 @@ form input {
 #searchBox {
     width: 80%;
     padding-left: 10px;
-    background: lightgrey;
+    background: var(--hover);
+    color: var(--text);
 }
 #searchBtn {
     width: 20%;

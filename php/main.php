@@ -143,7 +143,10 @@ class user {
         $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
         $this->settings = array(
             "font" => $dataOfQuery["font"],
-            "theme" => $dataOfQuery["theme"],
+            "background" => $dataOfQuery["backgroundCol"],
+            "text" => $dataOfQuery["textCol"],
+            "hover" => $dataOfQuery["hoverCol"],
+            "secondary" => $dataOfQuery["secondaryCol"],
         );
     }
 
@@ -214,37 +217,30 @@ class user {
         }
     }
 
-    function updateSettings($font, $theme) {
+    function updateSettings($font, $background, $secondary, $hover, $text) {
         $conn = databaseConnect(); # Set $conn variable from the databaseConnect function
         $this->settings["font"] = $font; # Set the font to the user object
-        $this->settings["theme"] = $theme;
-        $SQL = "UPDATE settings SET font=`$font`, theme=`$theme` WHERE userID=`$this->userID`;"; # Update the row in the settings table for the logged in user
+        $this->settings["background"] = $background;
+        $this->settings["secondary"] = $secondary;
+        $this->settings["hover"] = $hover;
+        $this->settings["text"] = $text;
+        $SQL = "UPDATE settings SET font='$font', backgroundCol='$background', secondaryCol='$secondary', hoverCol='$hover', textCol='$text' WHERE userID='$this->userID';"; # Update the row in the settings table for the logged in user
+        echo "sql ran";
         $resultOfQuery = mysqli_query($conn, $SQL); # Query the server with the previous statement
     }
 
     function renderUserSettings() {
         $settings = $this->settings;
-        switch ($settings["theme"]) {
-            case "light":
-                $background="white";
-                $accent="#8e8e8e";
-                $text="#222";
-                break;
-            case "dark":
-                $background="#222";
-                $accent="#101010";
-                $text="#f8f8f8";
-                break;
-        }
         $HTML = "<style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap');
         * {
-            font-family: $settings['font'];
+            font-family: " . $settings['font'] . ";
         }
         :root {
-            --background: $background;
-            --accent: $accent;
-            --text: $text;
+            --background: " . $settings['background'] . ";
+            --hover " . $settings['hover'] . ";
+            --secondary: " . $settings['secondary'] . ";
+            --text: " . $settings['text'] . ";
         }
         </style>";
         echo $HTML;

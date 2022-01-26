@@ -27,6 +27,9 @@ CREATE TABLE messages(
 CREATE TABLE settings(
     userID INT NOT NULL,
     font VARCHAR(255),
-    theme VARCHAR(255),
-    PRIMARY KEY (userID) REFERENCES users(userID)
+    backgroundCol VARCHAR(255),
+    textCol VARCHAR(255),
+    hoverCol VARCHAR(255),
+    secondaryCol VARCHAR(255),
+    PRIMARY KEY (userID) REFERENCES users(userID), 
 );
