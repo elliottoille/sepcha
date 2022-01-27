@@ -158,9 +158,10 @@ class user {
     }
 
     function updatePassword($password, $confirmPassword) {
+        $uID = $this->userID;
         if ( compareStrings($password, $confirmPassword) ) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';";
+            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$uID';";
             $conn = databaseConnect();
             $resultOfQuery = mysqli_query($conn, $SQL);
         }

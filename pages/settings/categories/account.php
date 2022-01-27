@@ -7,7 +7,7 @@ if (isset( $_SESSION["currentUser"] )) {
 ?>
 <html>
     <body>
-        <form action="../../formphp/applySettings.php" method="POST">
+        <form action="../../formphp/updatePassword.php" method="POST">
             <label for="password">Update Password:</label>
             <input id="password" type="password" placeholder="password" name="password" required>
 
