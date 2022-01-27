@@ -9,4 +9,5 @@ if (isset( $_SESSION["currentUser"] )) {
 ?>
 <ul>
     <li><a href="categories/customisation.php" target="settingsFrame">Customisation</a></li>
+    <li><a href="categories/account.php" target="settingsFrame">Account</a></li>
 </ul>

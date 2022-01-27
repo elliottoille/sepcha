@@ -28,11 +28,15 @@ form input {
 #searchBtn {
     width: 20%;
     float: right;
+    background: var(--secondary);
+    color: var(--text);
 }
 #contactBtn {
     height: 40px;
     width: 100%;
     border: none;
+    background: var(--hover);
+    color: var(--text);
 }
 button, input {
     padding: 0;

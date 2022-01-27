@@ -67,23 +67,30 @@ function userLogIn($username, $password) { # Takes a prepared username and passw
     $SQL = "SELECT * FROM `users` WHERE `username`='$username';"; # SQL query that selects all the variables for a user where the username is the one the user entered
     $resultOfQuery = mysqli_query($conn, $SQL); # Queries the database with the previous SQL query
     $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Stores the data fetched by the query
+    $numOfQuery = mysqli_num_rows($resultOfQuery);
+
+    if ( $numOfQuery != 0 ) {
+        if ( password_verify($password, $dataOfQuery["password"]) ) { # Compares the password that the user entered with the one stored in the table
+            echo "the username and password you entered were a valid combination"; # if it was successful tell the user they entered a correct username/password combo
     
-    if ( password_verify($password, $dataOfQuery["password"]) ) { # Compares the password that the user entered with the one stored in the table
-        echo "the username and password you entered were a valid combination"; # if it was successful tell the user they entered a correct username/password combo
-
-        $userID = $dataOfQuery["userID"]; # Saves the variables returned from query into these temporary variables
-        $publicKey = $dataOfQuery["publicKey"];
-        $privateKey = $dataOfQuery["privateKey"];
-
-        $currentUser = new user($username, $userID, $publicKey, $privateKey); # Creates a new user class object using the data fetched from the query
-
-        $_SESSION["currentUser"] = $currentUser; # Stores the new user object as a session variable
+            $userID = $dataOfQuery["userID"]; # Saves the variables returned from query into these temporary variables
+            $publicKey = $dataOfQuery["publicKey"];
+            $privateKey = $dataOfQuery["privateKey"];
+    
+            $currentUser = new user($username, $userID, $publicKey, $privateKey); # Creates a new user class object using the data fetched from the query
+    
+            $_SESSION["currentUser"] = $currentUser; # Stores the new user object as a session variable
+        } else {
+            echo "the username and password you entered were an invalid combination";
+        }
+    } else {
+        echo "the username and password you entered were an invalid combination";
     }
 }
 
 function generateEncryptionKeys() { # Define a new function that takes no parameters
     $config = array( # Define an array of the configuration variables for the built-in functions
-        "digest_alg" => "sha512",
+        "digestD_alg" => "sha512",
         "private_key_bits" => 512,
         "private_key_type" => OPENSSL_KEYTYPE_RSA
     );
@@ -150,11 +157,13 @@ class user {
         );
     }
 
-    function updatePassword($password) {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';";
-        $conn = databaseConnect();
-        $resultOfQuery = mysqli_query($conn, $SQL);
+    function updatePassword($password, $confirmPassword) {
+        if ( compareStrings($password, $confirmPassword) ) {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';";
+            $conn = databaseConnect();
+            $resultOfQuery = mysqli_query($conn, $SQL);
+        }
     }
 
     function getUserID() {
@@ -220,17 +229,17 @@ class user {
     function updateSettings($font, $background, $secondary, $hover, $text) {
         $conn = databaseConnect(); # Set $conn variable from the databaseConnect function
         $this->settings["font"] = $font; # Set the font to the user object
-        $this->settings["background"] = $background;
+        $this->settings["background"] = $background; # Set the passed colours to the use object
         $this->settings["secondary"] = $secondary;
         $this->settings["hover"] = $hover;
         $this->settings["text"] = $text;
-        $SQL = "UPDATE settings SET font='$font', backgroundCol='$background', secondaryCol='$secondary', hoverCol='$hover', textCol='$text' WHERE userID='$this->userID';"; # Update the row in the settings table for the logged in user
-        echo "sql ran";
+        $SQL = "UPDATE settings SET font='$font', backgroundCol='$background', secondaryCol='$secondary', hoverCol='$hover', textCol='$text' WHERE userID='$this->userID';";
+        # Update the row in the settings table for the logged in user
         $resultOfQuery = mysqli_query($conn, $SQL); # Query the server with the previous statement
     }
 
     function renderUserSettings() {
-        $settings = $this->settings;
+        $settings = $this->settings; # Fetch the settings from the user object
         $HTML = "<style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap');
         * {
@@ -242,8 +251,8 @@ class user {
             --secondary: " . $settings['secondary'] . ";
             --text: " . $settings['text'] . ";
         }
-        </style>";
-        echo $HTML;
+        </style>"; # Set HTML variable to this snippet
+        echo $HTML; # Render the HTML variable on the webpage
     }
 }
 

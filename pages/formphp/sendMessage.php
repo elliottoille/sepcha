@@ -9,5 +9,5 @@ if ( $_SERVER["REQUEST_METHOD"] == "GET" ) {
         echo "you have not selected a contact";
     }
 }
-header('Location: ../messages/messagesPage.html');
+header('Location: ../messages/messagesPage.php');
 ?>

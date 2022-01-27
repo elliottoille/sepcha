@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="../../styles/font.css">
 <link rel="stylesheet" href="../../styles/contactsTab.css">
 <ul>
     <li><form method="POST" action="../formphp/newContact.php">
@@ -16,11 +15,11 @@
         }
     ?>
 </ul>
-<script>
+<!--<script>
     function refreshIframe() {
         document.getElementById('contactBtn').addEventListener('click', function() {
             var iframe = document.getElementById('messagesFrame');
-            iframe.contentWindow.location.reload(true);
+            iframe.src = iframe.src;
         });
     }
-</script>
+</script>-->

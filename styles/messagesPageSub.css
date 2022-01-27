@@ -21,7 +21,7 @@ form textarea {
     overflow: none;
     resize: none;
     margin: 0;
-    background: var(--highlight);
+    background-color: var(--hover);
     padding: 10px;
     color: var(--text);
 }
