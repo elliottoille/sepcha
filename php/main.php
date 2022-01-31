@@ -80,14 +80,12 @@ function userLogIn($username, $password) { # Takes a prepared username and passw
             $currentUser = new user($username, $userID, $publicKey, $privateKey); # Creates a new user class object using the data fetched from the query
     
             $_SESSION["currentUser"] = $currentUser; # Stores the new user object as a session variable
-            return TRUE;
         } else {
             echo "the username and password you entered were an invalid combination";
         }
     } else {
         echo "the username and password you entered were an invalid combination";
     }
-    return FALSE;
 }
 
 function generateEncryptionKeys() { # Define a new function that takes no parameters
@@ -162,18 +160,33 @@ class user {
     function updatePassword($password, $confirmPassword) { # updatePassword function takes two passwords as parameters
         if ( compareStrings($password, $confirmPassword) ) { # Check if the two passed passwords are the same using the compare strings function
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT); # If the passwords matched then hash the password
-            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';"; # SQL query that updates the logged in user's password in the users table
+            $userID = $this->userID;
+            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$userID';"; # SQL query that updates the logged in user's password in the users table
             $conn = databaseConnect(); # Set conn to the databaseConnect functions return
             $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the SQL statement
         }
     }
 
     function deleteUser($password) { # delete user function takes a password as a parameter
-        if ( userLogin($this->username, $password) ) { # Use the login function to check if the users password matches the one in the database
-            $conn = databaseConnect(); # If they match then set conn to the databaseConnect function
-            $SQL = "DELETE FROM users WHERE userID='$this->userID'; # SQL code that deletes the rows containing data about the logged in user
-                    DELETE FROM settings WHERE userID='$this->userID';";
+        $userID = $this->userID;
+        $conn = databaseConnect();
+        $SQL = "SELECT `password` FROM `users` WHERE `userID`='$userID';";
+        $resultOfQuery = mysqli_query($conn, $SQL);
+        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
+        $delete = FALSE;
+
+        if ( password_verify($password, $dataOfQuery["password"]) ) { # Check that the entered password matches the one in the database
+            $delete = TRUE;
+        } else {
+            $delete = FALSE;
+        }
+
+        if ( $delete ) { # Use the login function to check if the users password matches the one in the database
+            $SQL = "DELETE FROM users WHERE userID='$userID';";
+            $resultOfQuery = mysqli_query($conn, $SQL);
+            $SQL = "DELETE FROM settings WHERE userID='$userID';"; # SQL code that deletes the rows containing data about the logged in user
             $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the SQL statement
+            include 'logout.php'; # Log the user out
         }
     }
 

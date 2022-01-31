@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="../../styles/font.css">
 <link rel="stylesheet" href="../../styles/categoriesTab.css">
 <?php
 include '../../php/main.php';
