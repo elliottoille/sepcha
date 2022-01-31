@@ -80,12 +80,14 @@ function userLogIn($username, $password) { # Takes a prepared username and passw
             $currentUser = new user($username, $userID, $publicKey, $privateKey); # Creates a new user class object using the data fetched from the query
     
             $_SESSION["currentUser"] = $currentUser; # Stores the new user object as a session variable
+            return TRUE;
         } else {
             echo "the username and password you entered were an invalid combination";
         }
     } else {
         echo "the username and password you entered were an invalid combination";
     }
+    return FALSE;
 }
 
 function generateEncryptionKeys() { # Define a new function that takes no parameters
@@ -145,10 +147,10 @@ class user {
                 array_push($this->contacts, $dataOfQuery["contact"]); # If not NULL then push this result to the contacts array
             }
         }
-        $SQL = "SELECT * FROM settings WHERE userID='$userID';";
-        $resultOfQuery = mysqli_query($conn, $SQL);
-        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery);
-        $this->settings = array(
+        $SQL = "SELECT * FROM settings WHERE userID='$userID';"; # SQL that gets all items from the settings table
+        $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the previous SQL statement
+        $dataOfQuery = mysqli_fetch_assoc($resultOfQuery); # Fetch the data that was returned from the query
+        $this->settings = array( # Add all the fetched settings to the user objects setting dictionary
             "font" => $dataOfQuery["font"],
             "background" => $dataOfQuery["backgroundCol"],
             "text" => $dataOfQuery["textCol"],
@@ -157,13 +159,21 @@ class user {
         );
     }
 
-    function updatePassword($password, $confirmPassword) {
-        $uID = $this->userID;
-        if ( compareStrings($password, $confirmPassword) ) {
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$uID';";
-            $conn = databaseConnect();
-            $resultOfQuery = mysqli_query($conn, $SQL);
+    function updatePassword($password, $confirmPassword) { # updatePassword function takes two passwords as parameters
+        if ( compareStrings($password, $confirmPassword) ) { # Check if the two passed passwords are the same using the compare strings function
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT); # If the passwords matched then hash the password
+            $SQL = "UPDATE users SET `password`='$hashedPassword' WHERE `userID`='$this->userID';"; # SQL query that updates the logged in user's password in the users table
+            $conn = databaseConnect(); # Set conn to the databaseConnect functions return
+            $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the SQL statement
+        }
+    }
+
+    function deleteUser($password) { # delete user function takes a password as a parameter
+        if ( userLogin($this->username, $password) ) { # Use the login function to check if the users password matches the one in the database
+            $conn = databaseConnect(); # If they match then set conn to the databaseConnect function
+            $SQL = "DELETE FROM users WHERE userID='$this->userID'; # SQL code that deletes the rows containing data about the logged in user
+                    DELETE FROM settings WHERE userID='$this->userID';";
+            $resultOfQuery = mysqli_query($conn, $SQL); # Query the database with the SQL statement
         }
     }
 

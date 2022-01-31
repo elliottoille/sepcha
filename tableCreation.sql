@@ -31,5 +31,5 @@ CREATE TABLE settings(
     textCol VARCHAR(255),
     hoverCol VARCHAR(255),
     secondaryCol VARCHAR(255),
-    PRIMARY KEY (userID) REFERENCES users(userID), 
+    PRIMARY KEY (userID) REFERENCES users(userID)
 );
